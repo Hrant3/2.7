@@ -36,15 +36,6 @@ class Preprocessor:
 
 
 
-    def remove_corr(self,X):
-        correl_features = set()
-        corr_matrix = X.corr()
-        for i in range(len(corr_matrix.columns)):
-            for j in range(i):
-                if abs(corr_matrix.iloc[i, j]) > 0.8:
-                    colname = corr_matrix.columns[i]
-                    correl_features.add(colname)
-        return correl_features
 
 data = pd.read_csv("C:\\Users\\hrantb\\Downloads\\hospital_deaths_train.csv")
 y = data['In-hospital_death']
