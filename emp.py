@@ -8,7 +8,7 @@ from sklearn.ensemble import StackingClassifier, RandomForestClassifier, Bagging
 
 from sklearn.pipeline import make_pipeline
 from sklearn.metrics import confusion_matrix, f1_score
-from sklearn.impute import SimpleImputer
+from sklearn.impute import SimpleImputer, KNNImputer
 from imblearn.over_sampling import SMOTE
 import seaborn as sns
 import matplotlib.pyplot as plt
@@ -21,27 +21,37 @@ df = pd.read_csv("/home/gago/Documents/ACA homeworks/hospital_deaths_train.csv")
 X = df.drop(columns=["In-hospital_death"])
 col = X.columns
 y = df["In-hospital_death"]
-#X = SimpleImputer(missing_values=np.nan, strategy="mean").fit_transform(X)
+X = SimpleImputer(missing_values=np.nan, strategy="most_frequent").fit_transform(X)
 
-pipeline = make_pipeline(SimpleImputer(missing_values=np.nan, strategy="mean"),
-                         StandardScaler(),
+# pipeline = make_pipeline(SimpleImputer(missing_values=np.nan, strategy="mean"),
+#                          StandardScaler(),
+#                           PolynomialFeatures(degree=2))
+
+pipeline = make_pipeline(StandardScaler(),
                           PolynomialFeatures(degree=2))
 
-# pipeline = make_pipeline(StandardScaler(),
-#                           PolynomialFeatures(degree=2))
+
+# imp = KNNImputer(n_neighbors=20)
+# new_x = imp.fit_transform(X)
+# oversample = SMOTE()
+# poly = PolynomialFeatures(degree=2)
+# new_x = poly.fit_transform(new_x)
+# new_x, y = oversample.fit_resample(new_x, y)
+# new_df2 = pd.DataFrame(new_x, columns=poly.get_feature_names_out(X.columns))
+# x_train, x_test, y_train, y_test = train_test_split(new_df2.values, y, test_size=0.25, random_state=13)
 
 
 pipeline.fit(X)
 poly_features = pipeline.named_steps["polynomialfeatures"]
 poly_features_name = poly_features.get_feature_names_out(col)
-model = pipeline.transform(X)
+X = pipeline.transform(X)
+
+x_train, x_test, y_train, y_test = train_test_split(X, y , test_size=0.2, random_state=15)
 oversample = SMOTE()
-model, y = oversample.fit_resample(model, y)
+x_train, y_train = oversample.fit_resample(x_train, y_train)
+#new_df = pd.DataFrame(X_train, columns=poly_features_name)
 
-
-new_df = pd.DataFrame(model, columns=poly_features_name)
-
-x_train, x_test, y_train, y_test = train_test_split(new_df.values, y, test_size=0.25, random_state=13)
+#x_train, x_test, y_train, y_test = train_test_split(new_df.values, y, test_size=0.25, random_state=13)
 
 # estimators = [
 #       ('bagging', BaggingClassifier(n_estimators=10, random_state=13)),
@@ -68,12 +78,12 @@ x_train, x_test, y_train, y_test = train_test_split(new_df.values, y, test_size=
 # print(X_sm.shape)
 # print(y_sm.shape)
 
-# rfc = RandomForestClassifier(n_estimators=50, max_depth=8, random_state=23)
+# rfc = RandomForestClassifier(n_estimators=50, max_depth=10, random_state=23)
 # rfc.fit(x_train, y_train)
 # y_pred = rfc.predict(x_test)
-# print(rfc.score(x_train, y_train)) # 0.9928539526574364
-# print(rfc.score(x_test, y_test)) # 0.9455357142857143
-# print(f1_score(y_test, y_pred)) # 0.9452914798206278
+# print("Random_forest", rfc.score(x_train, y_train)) # 0.9975292003593891
+# print("Random_forest", rfc.score(x_test, y_test)) # 0.8676923076923077
+# print("Random_forest", f1_score(y_test, y_pred)) # 0.43421052631578944
 
 
 # cm = confusion_matrix(y_pred, y_train)
@@ -82,32 +92,32 @@ x_train, x_test, y_train, y_test = train_test_split(new_df.values, y, test_size=
 # plt.ylabel('True label')
 # plt.savefig("cm.png")
 
-# gba = GradientBoostingClassifier(n_estimators=40, max_depth=3, random_state=14)
+# gba = GradientBoostingClassifier(n_estimators=40, max_depth=10, random_state=14)
 # gba.fit(x_train, y_train)
 # y_pred = gba.predict(x_test)
-# print(gba.score(x_train, y_train)) # 0.9502009825815096
-# print(gba.score(x_test, y_test)) # 0.91875
-# print(f1_score(y_test, y_pred)) # 0.9171974522292994
+# print("GradineBoosting", gba.score(x_train, y_train)) # 0.9502009825815096
+# print("GradineBoosting", gba.score(x_test, y_test)) # 0.91875
+# print("GradineBoosting", f1_score(y_test, y_pred)) # 0.9171974522292994
 
 # svm = SVC(C=10**4, kernel='rbf')
 # svm.fit(x_train, y_train)
 # y_pred = svm.predict(x_test)
-# print(svm.score(x_train, y_train)) # 0.9580752739399714 (c=default) , 1.0 (C = 10**4)
-# print(svm.score(x_test, y_test)) # 0.9292857142857143 (c=default), 0.9442857142857143 (C = 10**4)
-# print(f1_score(y_pred, y_test)) # 0.9295373665480426 (c=default), 0.9451476793248946 (C = 10**4)
+# print("Svm", svm.score(x_train, y_train)) # 1.0 (C = 10**4)
+# print("Svm", svm.score(x_test, y_test)) # 0.8692307692307693 (C = 10**4)
+# print("Svm", f1_score(y_pred, y_test)) # 0.28571428571428575(C = 10**4)
 
-# ada = AdaBoostClassifier(n_estimators=40, random_state=12)
+# ada = AdaBoostClassifier(n_estimators=50 ,random_state=12)
 # ada.fit(x_train, y_train)
 # y_pred = ada.predict(x_test)
-# print(ada.score(x_train, y_train)) # 0.9178204555605181
-# print(ada.score(x_test, y_test)) # 0.9
-# print(f1_score(y_test, y_pred)) # 0.9001782531194296
+# print("Adaboost",ada.score(x_train, y_train)) # 0.9301437556154537
+# print("AdaBoost", ada.score(x_test, y_test)) # 0.8261538461538461
+# print("AdaBoost", f1_score(y_test, y_pred)) # 0.4021164021164021
 
-cm = confusion_matrix(y_pred, y_test)
-sns.heatmap(cm, annot=True,cmap='Blues', fmt='g')
-plt.xlabel('True label')
-plt.ylabel('Predicted label')
-plt.savefig("cm.png")
+# cm = confusion_matrix(y_pred, y_test)
+# sns.heatmap(cm, annot=True,cmap='Blues', fmt='g')
+# plt.xlabel('True label')
+# plt.ylabel('Predicted label')
+# plt.savefig("cm.png")
 
 # ada = AdaBoostClassifier()
 # param = {"n_estimators": [i for i in range(20, 30)]}
