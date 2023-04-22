@@ -3,17 +3,6 @@ from Preprocessor import Preprocessor
 import joblib
 import json
 import pandas as pd
-from sklearn.ensemble import AdaBoostClassifier
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.svm import SVC
-from sklearn.model_selection import GridSearchCV
-from sklearn.metrics import f1_score
-import numpy as np
-from sklearn.naive_bayes import MultinomialNB
-from sklearn.linear_model import LogisticRegression
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.ensemble import GradientBoostingClassifier
 
 import argparse
 from sklearn.model_selection import train_test_split
@@ -34,15 +23,15 @@ class Pipeline:
             score = self.model.score(X,y)
             print(score)
             threshold = self.model.threshold
-          #  jsonFile = {'predict_proba': predict_proba.tolist(), 'threshold': threshold}
-
+            # jsonFile = {'predict_proba': self.model.predict_proba, 'threshold': threshold}
+            #
             # with open('predictions.json', 'w') as f:
             #     json.dump(jsonFile, f)
 
 
            # threshold = self.model.get_threshold(X,y)
-           #  with open('predictions.json', 'w') as f:
-           #      json.dump({'predict_probas': predict_probas.tolist(), 'threshold': threshold}, f)
+            with open('predictions.json', 'w') as f:
+                json.dump({'predict_probas': self.model.predict_proba(X).tolist(), 'threshold': threshold}, f)
         else:
             self.preprocessor.fit(X)
             X= self.preprocessor.transform(X)
